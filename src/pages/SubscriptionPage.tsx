@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Star, Shield, Zap, Users, Crown } from 'lucide-react';
+import { Check, Star, Shield, Zap, Users, Crown, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
+import { loadStripe } from '@stripe/stripe-js';
 import { Link } from 'react-router-dom';
 
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
 const SubscriptionPage: React.FC = () => {
+  const { user } = useAuth();
+  const { subscription, updateSubscription } = useSubscription();
+  const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   const features = {
     free: [
       'Access to basic educational games',
@@ -33,6 +43,7 @@ const SubscriptionPage: React.FC = () => {
 
   const pricingCards = [
     {
+      id: 'free',
       title: 'Free',
       price: '0',
       period: 'forever',
@@ -43,6 +54,7 @@ const SubscriptionPage: React.FC = () => {
       popular: false
     },
     {
+      id: 'premium',
       title: 'Premium',
       price: '9.99',
       period: 'per month',
@@ -53,6 +65,7 @@ const SubscriptionPage: React.FC = () => {
       popular: true
     },
     {
+      id: 'family',
       title: 'Family',
       price: '19.99',
       period: 'per month',
@@ -63,6 +76,41 @@ const SubscriptionPage: React.FC = () => {
       popular: false
     }
   ];
+
+  const handleSubscribe = async (planId: string) => {
+    if (!user) {
+      setError('Please sign in to subscribe');
+      return;
+    }
+
+    try {
+      setLoading(planId);
+      setError(null);
+
+      if (planId === 'free') {
+        // Handle free plan
+        return;
+      }
+
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error('Stripe failed to load');
+
+      await updateSubscription(planId);
+      
+      // Redirect to checkout will be handled by the updateSubscription function
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const getButtonText = (planId: string) => {
+    if (subscription?.plan === planId) {
+      return 'Current Plan';
+    }
+    return planId === 'free' ? 'Get Started' : 'Subscribe';
+  };
 
   return (
     <div className="pt-24 pb-16 min-h-screen bg-gradient-to-b from-purple-50 to-indigo-50">
@@ -89,7 +137,7 @@ const SubscriptionPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {pricingCards.map((card, index) => (
             <motion.div
-              key={card.title}
+              key={card.id}
               className={`rounded-2xl overflow-hidden shadow-lg ${card.popular ? 'ring-2 ring-purple-500' : ''}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -124,16 +172,30 @@ const SubscriptionPage: React.FC = () => {
                 </ul>
                 
                 <motion.button
-                  className={`w-full ${card.buttonColor} text-white font-bold py-3 px-6 rounded-lg transition-colors`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  className={`w-full ${card.buttonColor} text-white font-bold py-3 px-6 rounded-lg transition-colors relative ${
+                    subscription?.plan === card.id ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  whileHover={{ scale: subscription?.plan !== card.id ? 1.02 : 1 }}
+                  whileTap={{ scale: subscription?.plan !== card.id ? 0.98 : 1 }}
+                  onClick={() => handleSubscribe(card.id)}
+                  disabled={loading !== null || subscription?.plan === card.id}
                 >
-                  Get Started
+                  {loading === card.id ? (
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                  ) : (
+                    getButtonText(card.id)
+                  )}
                 </motion.button>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-8">
+            {error}
+          </div>
+        )}
 
         {/* Features Section */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-16">
