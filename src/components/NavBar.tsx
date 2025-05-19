@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, TowerControl as GameController, BookOpen, Home, Info, MessageSquare, Star } from 'lucide-react';
+import { Menu, X, TowerControl as GameController, BookOpen, Home, Info, MessageSquare, Star, CreditCard } from 'lucide-react';
 
 const NavBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +35,7 @@ const NavBar: React.FC = () => {
     { path: '/about', label: 'About Us', icon: <Info size={18} /> },
     { path: '/testimonials', label: 'Testimonials', icon: <Star size={18} /> },
     { path: '/contact', label: 'Contact', icon: <MessageSquare size={18} /> },
+    { path: '/subscription', label: 'Subscribe', icon: <CreditCard size={18} /> },
   ];
   
   const isActive = (path: string) => {

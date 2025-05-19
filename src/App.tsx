@@ -10,10 +10,8 @@ import GameDetails from './pages/GameDetails';
 import ActivitiesPage from './pages/ActivitiesPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
-import TestimonialsPage from './pages/TestimonialsPage'; 
-
-
-
+import TestimonialsPage from './pages/TestimonialsPage';
+import SubscriptionPage from './pages/SubscriptionPage';
 
 function App() {
   return (
@@ -31,6 +29,7 @@ function App() {
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/testimonials" element={<TestimonialsPage />} />
+                <Route path="/subscription" element={<SubscriptionPage />} />
               </Routes>
             </main>
             <Footer />
